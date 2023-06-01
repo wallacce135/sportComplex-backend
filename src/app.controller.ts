@@ -46,9 +46,6 @@ export class AppController {
   @Post('Register')
   async RegisterNewUser(@Req() request, @Res() response) {
 
-    console.log('request.body -> ', request.body);
-
-
     await this.connection.query(`INSERT INTO Users VALUES (NULL, '${request.body.login}', '${request.body.email}', '${request.body.password}')`);
 
     return response.status(HttpStatus.OK).json()
@@ -60,7 +57,8 @@ export class AppController {
 
 
     const users = await this.connection.query(`SELECT * FROM Users  WHERE login="${request.body.login}" AND password="${request.body.password}"`)
-    const results = Object.assign([{}], users[0]);
+    const results = Object.assign([], users[0]);
+
 
 
     return response.status(HttpStatus.OK).json(results)
@@ -71,16 +69,35 @@ export class AppController {
   @Post('UserSchedule')
   async UserSchedule(@Req() request, @Res() response) {
 
-    console.log('request.body -> ', request.body);
 
-    const userSchedule = await this.connection.query(`SELECT serviceName, login, Price FROM Users, UsersServices, Services WHERE UsersServices.userID = Users.userID AND Services.serviceID = UsersServices.ServiceID AND Users.userID = ${request.body.id}`);
+    const userSchedule = await this.connection.query(`SELECT Users.userID, Services.serviceID, serviceName, login, Price FROM Users, UsersServices, Services WHERE UsersServices.userID = Users.userID AND Services.serviceID = UsersServices.ServiceID AND Users.userID = ${request.body.id}`);
     const results = Object.assign([], userSchedule[0]);
 
-    
-    // return response.status(HttpStatus.OK).json();
+
     return response.status(HttpStatus.OK).json(results);
 
+  }
+
+  @Post('getService')
+  async getService(@Req() request, @Res() response) {
+
+    await this.connection.query(`INSERT INTO UsersServices VALUES (${request.body.userID}, ${request.body.serviceID})`);
+
+    return response.status(HttpStatus.OK).json();
 
   }
+
+
+  @Post('cancelService')
+  async cancelService(@Req() request, @Res() response){
+
+    console.log('request.body -> ', request.body);
+
+    await this.connection.query(`DELETE FROM UsersServices WHERE UsersServices.userID = ${request.body.userId} AND UsersServices.ServiceID = ${request.body.serviceId}`);
+
+    return response.status(HttpStatus.OK).json();
+
+  }
+
 
 }
